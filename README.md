@@ -1,6 +1,6 @@
 # Implementation of PseudoEdgeNet: Nuclei Segemtnation only with Point Annotations
 
-## Dataset:
+## dataset:
 
 * https://nucleisegmentationbenchmark.weebly.com/
 
@@ -11,3 +11,7 @@
 ## Note:
 
 * Note.ipynb: how I implement it, thoughts, methods
+
+## libs:
+
+* source code
