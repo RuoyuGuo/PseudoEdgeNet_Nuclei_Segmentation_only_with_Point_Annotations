@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jun 29 23:25:40 2020
-
-@author: Ruoyu
+generate training data
 """
 
 import xml.etree.ElementTree as ET
@@ -13,7 +11,21 @@ import sys
 
 from tqdm import tqdm
 
-def _get_centroid(cnt):
+def _get_centroid_1(nucleus_contour):
+    '''
+    return centroid coordinate of a nucleus
+    manually, average of all coordinates
+    '''
+    #Arguments:
+    #nucleus_contour: a numpy array of a series of coordinates
+    
+    length = len(nucleus_contour)
+    sum_x = np.sum(nucleus_contour[:, 0])
+    sum_y = np.sum(nucleus_contour[:, 1])
+    
+    return int(sum_x/length), int(sum_y/length)
+
+def _get_centroid_2(cnt):
     '''
     return centroid coordinate of a nucleus
     using cv moment
@@ -50,10 +62,12 @@ def _get_binary_image(path):
     for region in root.iter('Region'):
         annos.append(region)
 
-    cnts = []                             #store contour coordinates of each nucleus
-    img = np.zeros((1000, 1000), dtype=np.bool_)
-    #ctds = []                             #store centroid coordinates of each nucleus
-
+    cnts = []                                         #store contour coordinates of each nucleus
+    #ctds = []                                        #store centroid coordinates of each nucleus
+    img = np.zeros((1000, 1000, 2), dtype=np.bool_)
+    img2 = np.zeros((1000, 1000), dtype=np.uint8)
+    subdiv = cv.Subdiv2D((0, 0, 1000, 1000))          #store voronoi diagram
+    
     #get contour and centroid of each nucleus
     for region in annos:
         cnt = []
@@ -63,11 +77,19 @@ def _get_binary_image(path):
 
         cnt = np.array(cnt)
         cnt = cnt[:, np.newaxis, :]
-        ctd = _get_centroid(cnt)
+        ctd = _get_centroid_2(cnt)
 
         cnts.append(cnt.astype(np.int32))
-        img[ctd[0], ctd[1]] = 1
+        if ctd[0] > 0 and ctd[0] < 1000 and ctd[1] > 0 and ctd[1] < 1000:
+            img[ctd[0], ctd[1], 0] = 1
+            subdiv.insert(ctd)
         #ctds.append(ctd)
+    
+    #get voronoi boundary
+    (facets, centers) = subdiv.getVoronoiFacetList([])
+    for e in facets:
+        cv.polylines(img2, [e.astype(np.int)], True, 1)
+    img[:, :, 1] = img2.astype(np.bool_)
     
     return img
     
@@ -80,7 +102,7 @@ def _get_point_annos_data(path, data_ids):
     #path: path that contain labels
     #data_ids: data id(without filename extension)
     
-    output = np.zeros((len(data_ids), 1000, 1000), dtype=np.bool_)
+    output = np.zeros((len(data_ids), 1000, 1000, 2), dtype=np.bool_)
     
     #write point annotation of each image 
     print('Generating point annotation...')
