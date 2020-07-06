@@ -64,8 +64,13 @@ def _get_binary_image(path):
 
     cnts = []                                         #store contour coordinates of each nucleus
     #ctds = []                                        #store centroid coordinates of each nucleus
-    img = np.zeros((1000, 1000, 2), dtype=np.bool_)
-    img2 = np.zeros((1000, 1000), dtype=np.uint8)
+    img = np.zeros((1000, 1000, 3), dtype=np.uint8)   #1st channel, store centroid
+                                                      #2nd channel, store voronoi boundary
+                                                      #3rd channel, store ground truth segmentation
+            
+    img2 = np.zeros((1000, 1000), dtype=np.uint8)     #2nd channel
+    img3 = np.zeros((1000, 1000), dtype=np.uint8)     #3rd channel
+    
     subdiv = cv.Subdiv2D((0, 0, 1000, 1000))          #store voronoi diagram
     
     #get contour and centroid of each nucleus
@@ -78,18 +83,26 @@ def _get_binary_image(path):
         cnt = np.array(cnt)
         cnt = cnt[:, np.newaxis, :]
         ctd = _get_centroid_2(cnt)
-
+        
+        
         cnts.append(cnt.astype(np.int32))
         if ctd[0] > 0 and ctd[0] < 1000 and ctd[1] > 0 and ctd[1] < 1000:
             img[ctd[0], ctd[1], 0] = 1
             subdiv.insert(ctd)
+            
+           
         #ctds.append(ctd)
+    
     
     #get voronoi boundary
     (facets, centers) = subdiv.getVoronoiFacetList([])
     for e in facets:
         cv.polylines(img2, [e.astype(np.int)], True, 1)
-    img[:, :, 1] = img2.astype(np.bool_)
+        
+    cv.drawContours(img3, cnts, -1, 255, -1)
+    
+    img[:, :, 1] = img2
+    img[:, :, 2] = img3
     
     return img
     
@@ -102,7 +115,7 @@ def _get_point_annos_data(path, data_ids):
     #path: path that contain labels
     #data_ids: data id(without filename extension)
     
-    output = np.zeros((len(data_ids), 1000, 1000, 2), dtype=np.bool_)
+    output = np.zeros((len(data_ids), 1000, 1000, 3), dtype=np.uint8)
     
     #write point annotation of each image 
     print('Generating point annotation...')

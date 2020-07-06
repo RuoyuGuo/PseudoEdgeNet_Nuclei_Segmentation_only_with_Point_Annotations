@@ -185,7 +185,7 @@ def build_model():
     #final stage, conv layer, then Upsampling, then follow a conv layer(use sigmoid)
     f = ConvFBnReLU(filters=128, kernel_size=(3, 3), stage='1')(f_concat)
     f = UpSampling2D(size=(4, 4), interpolation='nearest', name='final_upsample')(f)
-    f = ConvFBnSigmoid(filters=2, kernel_size=(3, 3), is_batch=False, stage='2')(f)
+    f = ConvFBnSigmoid(filters=1, kernel_size=(3, 3), is_batch=False, stage='2')(f)
     
     model = Model(input_tensor, f, name='segmentation network f(ResNet50_FPN)')
     
