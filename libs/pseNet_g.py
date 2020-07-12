@@ -14,7 +14,6 @@ def build_model(input_tensor,\
                 filters=[64, 64, 64, 2], \
                 kernel_sizes=[(3, 3), (3, 3), (3, 3), (3, 3)], \
                 is_batchs=[True, True, True, False], \
-                momentum=0.9, \
                 is_activation=[True, True, True, False] \
                ):
 
@@ -30,7 +29,7 @@ def build_model(input_tensor,\
         x = Conv2D(filters=filters[i], kernel_size=kernel_sizes[i], \
                    strides=(1, 1), padding='same', name=f'pseNet_conv{i+1}_conv')(x)
         if is_batchs[i]:
-            x = BatchNormalization(momentum=momentum, name=f'pseNet_conv{i+1}_bn')(x)
+            x = BatchNormalization(name=f'pseNet_conv{i+1}_bn')(x)
         if is_activation[i]:
             x = Activation(activation=activations.relu, name=f'pseNet_conv{i+1}_relu')(x)
     

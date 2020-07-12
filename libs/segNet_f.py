@@ -18,7 +18,7 @@ ResNet50 = keras.applications.ResNet50(
 )
 
 def ConvMBnReLU(filters=256, kernel_size=(1, 1), strides=(1, 1), \
-                      padding='same', momentum=0.9, stage=''):
+                      padding='same', stage='', use_bn=False, use_act=False):
     '''
     Build a conv2d layer + BN + relu for feature map M
     '''
@@ -29,15 +29,17 @@ def ConvMBnReLU(filters=256, kernel_size=(1, 1), strides=(1, 1), \
         
         x = Conv2D(filters=filters, kernel_size=kernel_size, \
                       strides=strides, padding=padding, name=name+'_conv')(input_tensor)
-        x = BatchNormalization(momentum=momentum, name=name+'_bn')(x)
-        x = Activation(activation=activations.relu, name=name+'_relu')(x)
+        if use_bn == True:
+            x = BatchNormalization(name=name+'_bn')(x)
+        if use_act == True:
+            x = Activation(activation=activations.relu, name=name+'_relu')(x)
         
         return x
         
     return wrapper
 
 def ConvPBnReLU(filters=256, kernel_size=(3, 3), strides=(1, 1), \
-                      padding='same', momentum=0.9, stage=''):
+                      padding='same', stage=''):
     '''
     Build a conv2d layer + BN + relu for feature map P
     '''
@@ -48,7 +50,7 @@ def ConvPBnReLU(filters=256, kernel_size=(3, 3), strides=(1, 1), \
         
         x = Conv2D(filters=filters, kernel_size=kernel_size, \
                       strides=strides, padding=padding, name=name+'_conv')(input_tensor)
-        x = BatchNormalization(momentum=momentum, name=name+'_bn')(x)
+        x = BatchNormalization(name=name+'_bn')(x)
         x = Activation(activation=activations.relu, name=name+'_relu')(x)
         
         return x
@@ -56,7 +58,7 @@ def ConvPBnReLU(filters=256, kernel_size=(3, 3), strides=(1, 1), \
     return wrapper
 
 def ConvHBnReLU(filters=128, kernel_size=(3, 3), strides=(1, 1), \
-                      padding='same', momentum=0.9, stage=''):
+                      padding='same', stage=''):
     '''
     Build a conv2d layer + BN + relu for feature map P
     '''
@@ -67,7 +69,7 @@ def ConvHBnReLU(filters=128, kernel_size=(3, 3), strides=(1, 1), \
         
         x = Conv2D(filters=filters, kernel_size=kernel_size, \
                       strides=strides, padding=padding, name=name+'_conv')(input_tensor)
-        x = BatchNormalization(momentum=momentum, name=name+'_bn')(x)
+        x = BatchNormalization(name=name+'_bn')(x)
         x = Activation(activation=activations.relu, name=name+'_relu')(x)
         
         return x
@@ -75,7 +77,7 @@ def ConvHBnReLU(filters=128, kernel_size=(3, 3), strides=(1, 1), \
     return wrapper
 
 def ConvFBnReLU(filters=128, kernel_size=(3, 3), strides=(1, 1), \
-                      padding='same', momentum=0.9, stage=''):
+                      padding='same', stage=''):
     '''
     Build a conv2d layer + BN + relu for final segmentation
     '''
@@ -86,7 +88,7 @@ def ConvFBnReLU(filters=128, kernel_size=(3, 3), strides=(1, 1), \
         
         x = Conv2D(filters=filters, kernel_size=kernel_size, \
                       strides=strides, padding=padding, name=name+'_conv')(input_tensor)
-        x = BatchNormalization(momentum=momentum, name=name+'_bn')(x)
+        x = BatchNormalization(name=name+'_bn')(x)
         x = Activation(activation=activations.relu, name=name+'_relu')(x)
         
         return x
@@ -94,7 +96,7 @@ def ConvFBnReLU(filters=128, kernel_size=(3, 3), strides=(1, 1), \
     return wrapper
 
 def ConvFBnSigmoid(filters=128, kernel_size=(3, 3), strides=(1, 1), \
-                      padding='same', momentum=0.9, stage='', is_batch=False):
+                      padding='same', stage='', is_batch=False):
     '''
     Build a conv2d layer + BN + sigmoid for final segmentation
     '''
@@ -106,7 +108,7 @@ def ConvFBnSigmoid(filters=128, kernel_size=(3, 3), strides=(1, 1), \
         x = Conv2D(filters=filters, kernel_size=kernel_size, \
                       strides=strides, padding=padding, name=name+'_conv')(input_tensor)
         if is_batch:
-            x = BatchNormalization(momentum=momentum, name=name+'_bn')(x)
+            x = BatchNormalization(name=name+'_bn')(x)
         x = Activation(activation=activations.sigmoid, name=name+'_sigmoid')(x)
         
         return x
@@ -128,13 +130,13 @@ def Upsample_crop(size=(2, 2), cropping=((1, 0), (1, 0)), is_crop=False, name=''
 
 def lateral_connection(is_crop=False,\
                           filters=256, strides=(1, 1), \
-                           padding='same', momentum=0.9, stage=''):
+                           padding='same', stage=''):
     
     name = 'stage'+stage + '_m' + stage + '_t2d'
     
     def wrapper(bottom_up_tensor, top_down_tensor):
         bottom_up_tensor = ConvMBnReLU(filters=filters, strides=strides, padding=padding, \
-                                             momentum=momentum, stage=stage)(bottom_up_tensor)
+                                             stage=stage)(bottom_up_tensor)
         
         top_down_tensor = Upsample_crop(size=(2, 2), cropping=((1, 0), (1, 0)), is_crop=is_crop, name=name)(top_down_tensor)
 
@@ -159,16 +161,16 @@ def build_model():
     m2 = lateral_connection(stage='2')(stage2, m3)
     
     #Attach 3 * 3 conv layer to get final feature map
-    p5 = ConvPBnReLU(filters=256, kernel_size=(3, 3), stage='5')(m5)
-    p4 = ConvPBnReLU(filters=256, kernel_size=(3, 3), stage='4')(m4)
-    p3 = ConvPBnReLU(filters=256, kernel_size=(3, 3), stage='3')(m3)
-    p2 = ConvPBnReLU(filters=256, kernel_size=(3, 3), stage='2')(m2)
+    p5 = ConvPBnReLU(filters=128, kernel_size=(3, 3), stage='5')(m5)
+    p4 = ConvPBnReLU(filters=128, kernel_size=(3, 3), stage='4')(m4)
+    p3 = ConvPBnReLU(filters=128, kernel_size=(3, 3), stage='3')(m3)
+    p2 = ConvPBnReLU(filters=128, kernel_size=(3, 3), stage='2')(m2)
     
     #Attach 3*3, conv layer to get segmentation head
-    head5 = ConvHBnReLU(filters=256, kernel_size=(3, 3), stage='5')(p5)
-    head4 = ConvHBnReLU(filters=256, kernel_size=(3, 3), stage='4')(p4)
-    head3 = ConvHBnReLU(filters=256, kernel_size=(3, 3), stage='3')(p3)
-    head2 = ConvHBnReLU(filters=256, kernel_size=(3, 3), stage='2')(p2)
+    head5 = ConvHBnReLU(filters=128, kernel_size=(3, 3), stage='5')(p5)
+    head4 = ConvHBnReLU(filters=128, kernel_size=(3, 3), stage='4')(p4)
+    head3 = ConvHBnReLU(filters=128, kernel_size=(3, 3), stage='3')(p3)
+    head2 = ConvHBnReLU(filters=128, kernel_size=(3, 3), stage='2')(p2)
     
     #upsampling and concat
     seg5 = Upsample_crop(size=(8, 8), cropping=((3, 3), (3, 3)), is_crop=True, name='5')(head5)

@@ -42,7 +42,7 @@ def _get_centroid_2(cnt):
         cX = int(M["m10"] / M["m00"])
         cY = int(M["m01"] / M["m00"])
         
-    return cX, cY
+    return cY, cX
 
 def _get_binary_image(path):
     '''
@@ -99,7 +99,7 @@ def _get_binary_image(path):
     for e in facets:
         cv.polylines(img2, [e.astype(np.int)], True, 1)
         
-    cv.drawContours(img3, cnts, -1, 255, -1)
+    cv.drawContours(img3, cnts, -1, 1, -1)
     
     img[:, :, 1] = img2
     img[:, :, 2] = img3
