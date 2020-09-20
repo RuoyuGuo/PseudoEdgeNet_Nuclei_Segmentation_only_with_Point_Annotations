@@ -1,4 +1,4 @@
-# Implementation of PseudoEdgeNet: Nuclei Segemtnation only with Point Annotations
+# Implementation of PseudoEdgeNet: Nuclei Segmentation only with Point Annotations
 
 ## dataset:
 
