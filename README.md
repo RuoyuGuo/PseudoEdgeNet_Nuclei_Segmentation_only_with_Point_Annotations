@@ -8,8 +8,11 @@
 
 * [PseudoEdgeNet: Nuclei Segmentation only with Point Annotations](https://arxiv.org/abs/1906.02924)
 
-## Result:
+## Implementation and Result:
 
+* training time: around 30 sec on a single NVIDIA Tesla V100 with 16 GB memory
+* batch_size = 2
+* epochs = 60
 * could produce same result showing the paper if use same evalutaion method (10-fold CV)
 
 ## structure
