@@ -5,7 +5,7 @@ build pseuduEdgeNet g
 
 from tensorflow import keras
 from tensorflow.keras.layers import Conv2D, BatchNormalization, Activation, \
-                                        UpSampling2D, Cropping2D, Add, Concatenate, Input
+                                        UpSampling2D, Cropping2D, Add, Concatenate
 from tensorflow.keras import Model, activations
 
 def build_model(input_tensor,\
@@ -22,14 +22,14 @@ def build_model(input_tensor,\
     '''
     
     if input_tensor == None:
-        input_tensor = Input(shape=input_shapes)
+        input_tensor = keras.Input(shape=input_shapes)
 
     x = input_tensor
     for i in range(num_of_layers):
         x = Conv2D(filters=filters[i], kernel_size=kernel_sizes[i], \
                    strides=(1, 1), padding='same', name=f'pseNet_conv{i+1}_conv')(x)
         if is_batchs[i]:
-            x = BatchNormalization(epsilon=1.001e-5, name=f'pseNet_conv{i+1}_bn')(x)
+            x = BatchNormalization(name=f'pseNet_conv{i+1}_bn')(x)
         if is_activation[i]:
             x = Activation(activation=activations.relu, name=f'pseNet_conv{i+1}_relu')(x)
     

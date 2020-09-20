@@ -42,7 +42,7 @@ def _get_centroid_2(cnt):
         cX = int(M["m10"] / M["m00"])
         cY = int(M["m01"] / M["m00"])
         
-    return cX, cY
+    return cY, cX
 
 def _get_binary_image(path):
     '''
@@ -87,7 +87,7 @@ def _get_binary_image(path):
         
         cnts.append(cnt.astype(np.int32))
         if ctd[0] > 0 and ctd[0] < 1000 and ctd[1] > 0 and ctd[1] < 1000:
-            img[ctd[1], ctd[0], 0] = 1
+            img[ctd[0], ctd[1], 0] = 1
             subdiv.insert(ctd)
             
            
